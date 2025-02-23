@@ -239,3 +239,45 @@ def data_set(data_name,transform_index=False):
 
         
     return trainset, testset
+
+
+def data_init_non_iid_client(FL_params):
+    import matplotlib.pyplot as plt
+    kwargs = {'num_workers': 0, 'pin_memory': True} if "cuda" in FL_params.device else {}
+    if FL_params.data_name == 'cifar10':
+        trainset, testset = data_set(FL_params.data_name,FL_params.transform_index)
+    else:
+        trainset, testset = data_set(FL_params.data_name)
+
+    # Build a test data loader
+    test_loader = DataLoader(testset, batch_size=FL_params.test_batch_size, shuffle=False, **kwargs)
+
+    # non-iid split
+    classes = trainset.classes
+    n_classes = len(classes)
+    n_clients=FL_params.N_total_client
+
+    # 1. 提取标签为 0 的所有索引
+    client0_indices = [i for i, target in enumerate(trainset.targets) if target == 0]
+
+    # 2. 提取其他标签（非0）的索引
+    other_indices = [i for i, target in enumerate(trainset.targets) if target != 0]
+
+    # 3. 随机打乱其他标签的索引顺序
+    np.random.shuffle(other_indices)
+
+    # 4. 将剩余样本随机分配给除 client 0 外的其他客户端
+    # 假设客户端总数为 n_clients，则剩下的 n_clients - 1 个客户端平分 other_indices
+    other_client_indices = np.array_split(other_indices, n_clients - 1)
+
+    # 5. 构造每个客户端的样本索引列表：
+    #    client 0 独享标签 0 的样本，其他客户端获得随机分配的剩余样本
+    client_idcs = [client0_indices] + list(other_client_indices)
+
+    client_dataset = [torch.utils.data.Subset(trainset, indices) for indices in client_idcs]
+
+    client_loaders = []
+    for ii in range(n_clients):
+        client_loaders.append(DataLoader(client_dataset[ii], 64, shuffle=True, **kwargs))
+    
+    return client_loaders, test_loader
