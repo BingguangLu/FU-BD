@@ -4,7 +4,7 @@ import numpy as np
 
 
 from model_initiation import mnist_model_init
-from data_preprocess import data_init, data_init_non_iid
+from data_preprocess import data_init, data_init_non_iid, data_init_non_iid_client
 from FL_base import federated_learning, test
 
 # from Fed_Unlearn_base import federated_learning_unlearning
@@ -74,6 +74,8 @@ def Federated_Learning():
         client_all_loaders, test_loader = data_init(FL_params)
     elif FL_params.data_split == 'noniid':
         client_all_loaders, test_loader = data_init_non_iid(FL_params)
+    elif FL_params.data_split == 'client':
+        client_all_loaders, test_loader = data_init_non_iid_client(FL_params)
     else:
         raise ValueError(f'No such data_split, please check it! Only iid or noniid')
 

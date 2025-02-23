@@ -275,6 +275,25 @@ def data_init_non_iid_client(FL_params):
     client_idcs = [client0_indices] + list(other_client_indices)
 
     client_dataset = [torch.utils.data.Subset(trainset, indices) for indices in client_idcs]
+    
+    labels = np.concatenate(
+        [np.array(trainset.targets), np.array(testset.targets)], axis=0)
+    plt.figure(figsize=(12, 8))
+    label_distribution = [[] for _ in range(n_classes)]
+    for c_id, idc in enumerate(client_idcs):
+        for idx in idc:
+            label_distribution[labels[idx]].append(c_id)
+
+    plt.hist(label_distribution, stacked=True,
+                bins=np.arange(-0.5, n_clients + 1.5, 1),
+                label=classes, rwidth=0.5)
+    plt.xticks(np.arange(n_clients), ["Client %d" %
+                                        c_id for c_id in range(n_clients)])
+    plt.xlabel("Client ID")
+    plt.ylabel("Number of samples")
+    plt.legend()
+    plt.title("Display Label Distribution on Different Clients")
+    plt.savefig(f"{FL_params.data_name}_noniid_plot.png")
 
     client_loaders = []
     for ii in range(n_clients):
