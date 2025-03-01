@@ -1,10 +1,11 @@
 
 import torch
 import numpy as np
+import random
 
 
 from model_initiation import mnist_model_init
-from data_preprocess import data_init, data_init_non_iid, data_init_non_iid_client
+from data_preprocess import data_init, data_init_non_iid, data_init_non_iid_client, data_init_non_iid_poison
 from FL_base import federated_learning, test
 
 # from Fed_Unlearn_base import federated_learning_unlearning
@@ -57,8 +58,13 @@ def Federated_Learning():
     args = args_parser()
     FL_params = Arguments(args)
     print(args)
-    
-    torch.manual_seed(FL_params.seed)
+    seed = FL_params.seed
+    np.random.seed(seed)
+    random.seed(seed)
+    torch.manual_seed(seed)
+    if torch.cuda.is_available():
+        torch.cuda.manual_seed_all(seed)
+    #torch.manual_seed(FL_params.seed)
     #kwargs for data loader 
     print(60*'=')
     print("Step1. Federated Learning Settings \n We use dataset: "+FL_params.data_name+(" for our Federated Unlearning experiment.\n"))
@@ -76,6 +82,8 @@ def Federated_Learning():
         client_all_loaders, test_loader = data_init_non_iid(FL_params)
     elif FL_params.data_split == 'client':
         client_all_loaders, test_loader = data_init_non_iid_client(FL_params)
+    elif FL_params.data_split == 'poison':
+        client_all_loaders, test_loader = data_init_non_iid_poison(FL_params)
     else:
         raise ValueError(f'No such data_split, please check it! Only iid or noniid')
 

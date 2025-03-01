@@ -7,7 +7,7 @@ def args_parser():
     
     # Federated Learning Settings
     parser.add_argument('--dataset', type=str, default='mnist', help="dataset name")# purchase, cifar10, mnist
-    parser.add_argument('--data_split', type=str, default='iid', choices=['iid','noniid', 'client'], help="data set partitioning method")
+    parser.add_argument('--data_split', type=str, default='iid', choices=['iid','noniid', 'client', 'poison'], help="data set partitioning method")
 
     parser.add_argument('--N_total_client',type=int, default=10, help='the total number of clients in the data set')
     parser.add_argument('--N_client',type=int, default=10, help='the chosen number of clients for FL model training')
